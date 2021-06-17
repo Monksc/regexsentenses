@@ -9,6 +9,7 @@
     #include "vector.h"
     typedef struct regexexpression returnstruct;
     void yyerror(returnstruct * r, char *s);
+    int maxcharactercount;
 }
 
 %union { int num; int range[2]; char c; struct regexexpression rexpression; struct regexrange rrange; struct regexoptions roptions; struct regexcharactergroup rcgroup; struct regexcharacter rcharacter; struct vector list; }
@@ -137,6 +138,7 @@ void yyerror(returnstruct * r, char* s) { fprintf(stderr, "%s\n", s); }
 void printhelppage() {
     printf(
         "HELP PAGE:\n"
+        "\t-c <int> forces * and + to only go to int specified. Default is 255.\n"
         "\t-d --debug shows how the regex is parsed\n"
         "\t-h --help shows this page\n"
     );
@@ -149,8 +151,19 @@ int main(int argc, char * argv[]) {
 
     int debug = 0;
     int help = 0;
+
+    int parsemaxcharactercount = 0;
+
+    maxcharactercount = 255;
     for (int i = 1; i < argc; i++) {
         validtoprint[i] = 0;
+
+        if (parsemaxcharactercount) {
+            maxcharactercount = atoi(argv[i]);
+            parsemaxcharactercount = 0;
+            continue;
+        }
+
         if (strcmp(argv[i], "-debug") == 0) {
             debug = 1;
             continue;
@@ -175,6 +188,8 @@ int main(int argc, char * argv[]) {
                     debug = 1;
                 } else if (*itr == 'h') {
                     help = 1;
+                } else if (*itr == 'c') {
+                    parsemaxcharactercount = 1;
                 } else {
                     fprintf(stderr, "Unknown character %c and argument %s\n",
                         *itr, argv[i]);
